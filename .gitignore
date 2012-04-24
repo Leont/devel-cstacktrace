@@ -1,0 +1,8 @@
+Build
+Build.bat
+.build/*
+Devel-Backtrace-*
+*.swp
+*.tdy
+*.c
+*.o
