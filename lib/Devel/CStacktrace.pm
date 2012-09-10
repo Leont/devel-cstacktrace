@@ -19,7 +19,7 @@ __END__
 
 =head1 DESCRIPTION
 
-This module exports one function, stacktrace, that returns a list. It also sets signal handlers for SIGSEGV, SIGBUS, SIGILL and SIGFPE that prints a stacktrace to stderr.
+This module exports one function, stacktrace, that returns a list. It also sets signal handlers for C<SIGSEGV>, C<SIGBUS>, C<SIGILL> and C<SIGFPE> that prints a stacktrace and some more information about the fault to stderr before dying.
 
 =func stacktrace($max_depth)
 
