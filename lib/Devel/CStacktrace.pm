@@ -3,7 +3,7 @@ package Devel::CStacktrace;
 use strict;
 use warnings;
 use XSLoader;
-use Sub::Exporter -setup => { exports => [qw/stacktrace/] };
+use Sub::Exporter::Progressive -setup => { exports => [qw/stacktrace/] };
 
 XSLoader::load(__PACKAGE__, __PACKAGE__->VERSION);
 
