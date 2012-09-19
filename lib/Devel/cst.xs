@@ -105,27 +105,38 @@ void handler(int signo, siginfo_t* info, void* context) {
 
 #pragma GCC diagnostic pop
 
-int signals[] = { SIGSEGV, SIGBUS, SIGILL, SIGFPE };
+static const int signals[] = { SIGSEGV, SIGBUS, SIGILL, SIGFPE };
+static int inited = 0;
 
 #define STACKSIZE 8096
 char altstack_buffer[STACKSIZE];
 
-MODULE = Devel::CStacktrace				PACKAGE = Devel::CStacktrace
+MODULE = Devel::cst        				PACKAGE = Devel::cst
 
 BOOT:
-	struct sigaction action;
-	int i;
-	stack_t altstack = { altstack_buffer, 0, STACKSIZE };
-	sigaltstack(&altstack, NULL);
-	action.sa_sigaction = handler;
-	action.sa_flags   = SA_RESETHAND | SA_SIGINFO | SA_ONSTACK;
-	sigemptyset(&action.sa_mask);
-	for (i = 0; i < sizeof signals / sizeof *signals; i++)
-		sigaction(signals[i], &action, NULL);
 	name[SIGSEGV] = (struct iovec){ STR_WITH_LEN("SIGSEGV") };
 	name[SIGBUS]  = (struct iovec){ STR_WITH_LEN("SIGBUS") };
 	name[SIGILL]  = (struct iovec){ STR_WITH_LEN("SIGILL") };
 	name[SIGFPE]  = (struct iovec){ STR_WITH_LEN("SIGFPE") };
+
+void
+import(package)
+	SV* package;
+	CODE:
+	if (!inited) {
+		struct sigaction action;
+		int i;
+		stack_t altstack = { altstack_buffer, 0, STACKSIZE };
+		sigaltstack(&altstack, NULL);
+		action.sa_sigaction = handler;
+		action.sa_flags   = SA_RESETHAND | SA_SIGINFO | SA_ONSTACK;
+		sigemptyset(&action.sa_mask);
+		for (i = 0; i < sizeof signals / sizeof *signals; i++)
+			sigaction(signals[i], &action, NULL);
+		inited = 1;
+	}
+
+MODULE = Devel::cst        				PACKAGE = Devel::CStacktrace
 
 void
 stacktrace(depth)

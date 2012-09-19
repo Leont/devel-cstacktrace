@@ -1,7 +1,7 @@
 Build
 Build.bat
 .build/*
-Devel-Backtrace-*
+Devel-cst-*
 *.swp
 *.tdy
 *.c
