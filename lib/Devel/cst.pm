@@ -3,9 +3,11 @@ package Devel::cst;
 use strict;
 use warnings;
 use XSLoader;
+
+$^P = 0 if $^P == 0x73f && not defined &DB::DB && caller eq 'main';
 XSLoader::load(__PACKAGE__, __PACKAGE__->VERSION);
 
-sub DB::DB {}
+1;
 
 # ABSTRACT: C stacktraces for GNU systems
 
