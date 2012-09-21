@@ -99,7 +99,8 @@ void handler(int signo, siginfo_t* info, void* context) {
 	}
 	write(2, STR_WITH_LEN(" : "));
 	write_siginfo(info);
-	backtrace_symbols_fd(buffer, len, 2);
+	/* Skip signal handler itself */
+	backtrace_symbols_fd(buffer + 2, len - 2, 2);
 	raise(signo);
 }
 
