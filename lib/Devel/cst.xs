@@ -109,8 +109,7 @@ void handler(int signo, siginfo_t* info, void* context) {
 static const int signals[] = { SIGSEGV, SIGBUS, SIGILL, SIGFPE };
 static int inited = 0;
 
-#define STACKSIZE 8096
-char altstack_buffer[STACKSIZE];
+char altstack_buffer[SIGSTKSZ];
 
 MODULE = Devel::cst        				PACKAGE = Devel::cst
 
@@ -121,13 +120,14 @@ BOOT:
 	name[SIGFPE]  = (struct iovec){ STR_WITH_LEN("SIGFPE") };
 
 void
-import(package)
+import(package, stacksize = SIGSTKSZ)
 	SV* package;
+	size_t stacksize;
 	CODE:
 	if (!inited) {
 		struct sigaction action;
 		int i;
-		stack_t altstack = { altstack_buffer, 0, STACKSIZE };
+		stack_t altstack = { altstack_buffer, 0, stacksize };
 		sigaltstack(&altstack, NULL);
 		action.sa_sigaction = handler;
 		action.sa_flags   = SA_RESETHAND | SA_SIGINFO | SA_ONSTACK;
@@ -151,6 +151,5 @@ stacktrace(depth)
 	Newx(buffer, depth, void*);
 	len = backtrace(buffer, depth);
 	values = backtrace_symbols(buffer, len);
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
 		mXPUSHp(values[i], strlen(values[i]));
-	}
