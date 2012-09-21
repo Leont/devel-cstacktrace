@@ -6,23 +6,57 @@
 #include "perl.h"
 #include "XSUB.h"
 
-#define stack_depth 128
+#define add_raw(ptr, length) buffers[counter++] = (struct iovec){ ptr, length }
+#define add_ptr(arg) add_raw(arg, strlen(arg))
+#define add_string(arg) buffers[counter++] = (struct iovec){ STR_WITH_LEN(arg) }
 
-#define add_string(arg) write(2, STR_WITH_LEN(arg))
-#define add_line(arg) add_string(arg "\n")
+#define ptoha_size (sizeof(void*) * 2 + 2 + 1)
+static const char digits[] = "0123456789abcdef";
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-result"
-
-void write_addrinfo(const char* format, void* addr) {
-	/* This is not really allowed per POSIX but seems safe enough */
-	char buffer[80];
-	int len = snprintf(buffer, 80, format, addr);
-	write(2, buffer, len);
+static void rmemcpy(char* target, const char* source, size_t length) {
+	const char* end = source + length - 1;
+	while(end >= source)
+		*target++ = *end--;
 }
-#define add_addr(format, ptr) write_addrinfo(format " at 0x%p\n", ptr)
 
-void write_siginfo(siginfo_t* info) {
+static const char nil[] = "(nil)";
+
+static size_t ptoha(char* buffer, void* ptr) {
+	char private[ptoha_size];
+	char* private_ptr = private;
+	uintptr_t num = (uintptr_t)ptr;
+	size_t length = 0;
+	if (num) {
+		while (num) {
+			*private_ptr++ = digits[num & 0xF];
+			num >>= 4;
+			length++;
+		}
+		memcpy(buffer, "0x", 2);
+		rmemcpy(buffer + 2, private, length);
+		buffer[length + 2] = '\0';
+		return length + 2;
+	}
+	else {
+		memcpy(buffer, nil, sizeof nil);
+		return sizeof nil - 1;
+	}
+}
+
+#define add_addr(desc, ptr) STMT_START {\
+	char __address_buffer__[ptoha_size];\
+	size_t __buffer__length__ = ptoha(__address_buffer__, ptr);\
+	add_string(desc " [");\
+	add_raw(__address_buffer__, __buffer__length__);\
+	add_string("]");\
+	} STMT_END
+	
+static void my_psiginfo(siginfo_t* info) {
+	struct iovec buffers[6];
+	const char* desc = sys_siglist[info->si_signo];
+	size_t counter = 0;
+	add_ptr((char*)desc);
+	add_string(" (");
 	switch (info->si_signo) {
 		case SIGSEGV:
 			switch (info->si_code) {
@@ -73,68 +107,77 @@ void write_siginfo(siginfo_t* info) {
 			backup:
 			switch (info->si_code) {
 				case SI_USER: 
-					add_line("from user");
+					add_string("from user");
 					break;
 				case SI_KERNEL:
-					add_line("from kernel");
+					add_string("from kernel");
 					break;
 				default:
-					add_line("unknown cause or source");
+					add_string("unknown cause or source");
 			}
 	}
+	add_string(")\n");
+	writev(2, buffers, counter);
 }
 
-static struct iovec name[NSIG];
+static int stack_depth;
 
-void handler(int signo, siginfo_t* info, void* context) {
+static void handler(int signo, siginfo_t* info, void* context) {
 	void** buffer = alloca(sizeof(void*) * stack_depth);
 	size_t len = backtrace(buffer, stack_depth);
-	write(2, STR_WITH_LEN("Received signal "));
-	if (name[signo].iov_len) {
-		write(2, name[signo].iov_base, strlen(name[signo].iov_base));
-	}
-	else {
-		char signal_str[2] = { '0' + signo / 10, '0' + signo % 10 };
-		write(2, signal_str, 2);
-	}
-	write(2, STR_WITH_LEN(" : "));
-	write_siginfo(info);
+	my_psiginfo(info);
 	/* Skip signal handler itself */
 	backtrace_symbols_fd(buffer + 2, len - 2, 2);
 	raise(signo);
 }
 
-#pragma GCC diagnostic pop
-
 static const int signals[] = { SIGSEGV, SIGBUS, SIGILL, SIGFPE };
-static int inited = 0;
 
-char altstack_buffer[SIGSTKSZ];
+#ifndef MAX
+#define MAX(a, b) (a > b ? a : b)
+#endif
+
+static int stack_destroy(pTHX_ SV* sv, MAGIC* magic) {
+	stack_t stack = (stack_t){ NULL, SS_DISABLE, 0 };
+	sigaltstack(&stack, NULL);
+	return 0;
+}
+
+static const MGVTBL stack_magic = { NULL, NULL, NULL, NULL, stack_destroy };
+
+static void S_set_signalstack(pTHX_ int depth) {
+	size_t stacksize = MAX(sizeof(void*) * depth + 2 * MINSIGSTKSZ, SIGSTKSZ);
+	SV* ret = newSVpvn("", 0);
+	SvGROW(ret, stacksize);
+	sv_magicext(ret, NULL, PERL_MAGIC_ext, &stack_magic, NULL, 0);
+	stack_t altstack = { SvPV_nolen(ret), 0, stacksize };
+	sigaltstack(&altstack, NULL);
+}
+#define set_signalstack(depth) S_set_signalstack(aTHX_ depth)
+
+static void set_handlers() {
+	struct sigaction action;
+	int i;
+	action.sa_sigaction = handler;
+	action.sa_flags   = SA_RESETHAND | SA_SIGINFO | SA_ONSTACK;
+	sigemptyset(&action.sa_mask);
+	for (i = 0; i < sizeof signals / sizeof *signals; i++)
+		sigaction(signals[i], &action, NULL);
+}
+
+static volatile int inited = 0;
 
 MODULE = Devel::cst        				PACKAGE = Devel::cst
 
-BOOT:
-	name[SIGSEGV] = (struct iovec){ STR_WITH_LEN("SIGSEGV") };
-	name[SIGBUS]  = (struct iovec){ STR_WITH_LEN("SIGBUS") };
-	name[SIGILL]  = (struct iovec){ STR_WITH_LEN("SIGILL") };
-	name[SIGFPE]  = (struct iovec){ STR_WITH_LEN("SIGFPE") };
-
 void
-import(package, stacksize = SIGSTKSZ)
+import(package, depth = 20)
 	SV* package;
-	size_t stacksize;
+	size_t depth;
 	CODE:
-	if (!inited) {
-		struct sigaction action;
-		int i;
-		stack_t altstack = { altstack_buffer, 0, stacksize };
-		sigaltstack(&altstack, NULL);
-		action.sa_sigaction = handler;
-		action.sa_flags   = SA_RESETHAND | SA_SIGINFO | SA_ONSTACK;
-		sigemptyset(&action.sa_mask);
-		for (i = 0; i < sizeof signals / sizeof *signals; i++)
-			sigaction(signals[i], &action, NULL);
-		inited = 1;
+	if (!inited++) {
+		set_signalstack(depth);
+		stack_depth = depth;
+		set_handlers();
 	}
 
 MODULE = Devel::cst        				PACKAGE = Devel::CStacktrace
