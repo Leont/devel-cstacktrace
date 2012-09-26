@@ -2,6 +2,8 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.002     2012-09-26 16:30:47 Europe/Amsterdam
+
           Disable need for DB::DB
           Skip signal handler in stacktrace
           Add tests for the debugger
