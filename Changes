@@ -1,5 +1,12 @@
-Revision history for Devel-CStacktrace
+Revision history for {{$dist->name}}
 
-0.001   Date/time
-        First version, released on an unsuspecting world.
+{{$NEXT}}
+
+          Disable need for DB::DB
+          Skip signal handler in stacktrace
+          Add tests for the debugger
+          Set signal stack size to system default
+
+0.001     2012-09-20 01:36:41 Europe/Amsterdam
+          First version, released on an unsuspecting world.
 
