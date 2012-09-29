@@ -13,7 +13,7 @@ plan(skip_all => 'no fork') if not $Config{d_fork};
 
 sub check_segv(&@);
 
-my $address_not_mapped = qr/address not mapped to object \[0x[0-9a-f]+\]/;
+my $address_not_mapped = qr/address not mapped to object \[.*?\]/s;
 
 check_segv { raise(SIGSEGV) } qr/from user/, 'Got stacktrace on raise';
 check_segv { eval 'package Regexp; use overload q{""} => sub { qr/$_[0]/ }; "".qr//' } $address_not_mapped, 'Got stacktrace on overload recursion';

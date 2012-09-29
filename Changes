@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+          Accept any kind of pointer stringification
 
 0.002     2012-09-26 16:30:47 Europe/Amsterdam
 
