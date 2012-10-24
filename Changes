@@ -2,6 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
           Add PPPort
+          Bring errors in line with psiginfo
 
 0.003     2012-09-29 21:37:00 Europe/Amsterdam
           Accept any kind of pointer stringification

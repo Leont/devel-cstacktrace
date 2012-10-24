@@ -13,9 +13,9 @@ plan(skip_all => 'no fork') if not $Config{d_fork};
 
 sub check_segv(&@);
 
-my $address_not_mapped = qr/address not mapped to object \[.*?\]/s;
+my $address_not_mapped = qr/Address not mapped to object \[.*?\]/s;
 
-check_segv { raise(SIGSEGV) } qr/from user/, 'Got stacktrace on raise';
+check_segv { raise(SIGSEGV) } qr/Signal sent by kill\(\)(?: \[.*?\])?/, 'Got stacktrace on raise';
 check_segv { eval 'package Regexp; use overload q{""} => sub { qr/$_[0]/ }; "".qr//' } $address_not_mapped, 'Got stacktrace on overload recursion';
 check_segv { unpack "p", pack "L!", 1; } $address_not_mapped, 'Acme::Boom trick';
 
