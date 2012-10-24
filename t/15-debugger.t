@@ -2,6 +2,7 @@
 
 use strict;
 use warnings FATAL => 'all';
+no warnings 'recursion'; # Doing bad stuff on purpose
 
 use Test::More 0.89;
 use Devel::cst;
@@ -16,8 +17,13 @@ sub check_segv(&@);
 my $address_not_mapped = qr/Address not mapped to object \[.*?\]/s;
 
 check_segv { raise(SIGSEGV) } qr/Signal sent by kill\(\)(?: \[.*?\])?/, 'Got stacktrace on raise';
-check_segv { eval 'package Regexp; use overload q{""} => sub { qr/$_[0]/ }; "".qr//' } $address_not_mapped, 'Got stacktrace on overload recursion';
+check_segv { eval 'package Regexp; use overload q{""} => sub { qr/$_[0]/ }; "".qr//' } $address_not_mapped, 'Got stacktrace on overload recursion' if $] < 5.017;
+sub z { [ sort { z() } 1, 2 ] }
+check_segv { z() } $address_not_mapped, 'sort recursion segfaults';
+#check_segv { local @INC = sub { require $_[0] }; require ExtUtils::Embed } $address_not_mapped, 'Require stack overflows';
 check_segv { unpack "p", pack "L!", 1; } $address_not_mapped, 'Acme::Boom trick';
+
+done_testing;
 
 sub check_segv(&@) {
 	my ($sub, $extra, $message) = @_;
@@ -31,14 +37,16 @@ sub check_segv(&@) {
 		my $status = waitpid -1, 0;
 		local $Test::Builder::Level = $Test::Builder::Level + 1;
 		ok(WIFSIGNALED(${^CHILD_ERROR_NATIVE}), "Test died properly");
-		my ($output, @rest) = <$in>;
+		my $output = <$in>;
 		like $output, qr/Segmentation fault \($extra\)/i, $message;
+		my @rest = <$in>;
+		ok @rest, "Test \'$message\' gave a stacktrace";
 	}
 	else {
+		alarm 2;
 		open STDERR, '<&', fileno $out;
 		$sub->();
 		die "Threw no signal?\n";
 	}
 }
 
-done_testing;
