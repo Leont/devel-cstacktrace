@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.004     2012-10-29 18:05:37 Europe/Amsterdam
           Add PPPort
           Bring errors in line with psiginfo
           Allow debugger stacking
