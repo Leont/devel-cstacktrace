@@ -4,6 +4,7 @@ Revision history for {{$dist->name}}
           Add PPPort
           Bring errors in line with psiginfo
           Allow debugger stacking
+          Handle SIGABRT, SIGTRAP and SIGQUIT too
 
 0.003     2012-09-29 21:37:00 Europe/Amsterdam
           Accept any kind of pointer stringification

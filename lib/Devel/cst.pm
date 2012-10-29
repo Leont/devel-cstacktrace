@@ -17,5 +17,5 @@ XSLoader::load(__PACKAGE__, __PACKAGE__->VERSION);
 
 =head1 DESCRIPTION
 
-This module sets signal handlers for C<SIGSEGV>, C<SIGBUS>, C<SIGILL> and C<SIGFPE> that prints a stacktrace and some more information about the fault to stderr before dying. This enables debugging even without gdb being present.
+This module sets signal handlers for C<SIGSEGV>, C<SIGBUS>, C<SIGILL>, C<SIGFPE>, C<SIGTRAP>, C<SIGABRT> and C<SIGQUIT> that prints a stacktrace and some more information about the fault to stderr before dying. This enables debugging even without gdb being present.
 

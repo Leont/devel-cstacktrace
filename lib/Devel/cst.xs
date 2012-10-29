@@ -166,7 +166,8 @@ static void handler(int signo, siginfo_t* info, void* context) {
 	raise(signo);
 }
 
-static const int signals[] = { SIGSEGV, SIGBUS, SIGILL, SIGFPE };
+static const int signals_normal[] = { SIGILL, SIGFPE, SIGTRAP, SIGABRT, SIGQUIT };
+static const int signals_altstack[] = { SIGSEGV, SIGBUS };
 
 #ifndef MAX
 #define MAX(a, b) (a > b ? a : b)
@@ -194,10 +195,13 @@ static void set_handlers() {
 	struct sigaction action;
 	int i;
 	action.sa_sigaction = handler;
-	action.sa_flags   = SA_RESETHAND | SA_SIGINFO | SA_ONSTACK;
+	action.sa_flags     = SA_RESETHAND | SA_SIGINFO;
 	sigemptyset(&action.sa_mask);
-	for (i = 0; i < sizeof signals / sizeof *signals; i++)
-		sigaction(signals[i], &action, NULL);
+	for (i = 0; i < sizeof signals_normal / sizeof *signals_normal; i++)
+		sigaction(signals_normal[i], &action, NULL);
+	action.sa_flags |= SA_ONSTACK;
+	for (i = 0; i < sizeof signals_altstack / sizeof *signals_altstack; i++)
+		sigaction(signals_altstack[i], &action, NULL);
 }
 
 static volatile int inited = 0;
