@@ -208,6 +208,11 @@ static volatile int inited = 0;
 
 MODULE = Devel::cst        				PACKAGE = Devel::cst
 
+BOOT:
+	/* preload libgcc_s by getting a stacktrace early */
+	void** buffer = alloca(sizeof(void*) * 20);
+	size_t len = backtrace(buffer, 20);
+
 void
 import(package, depth = 20)
 	SV* package;
