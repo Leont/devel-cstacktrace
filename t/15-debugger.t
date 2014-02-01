@@ -1,11 +1,10 @@
-#! perl
+#! perl -d:cst
 
 use strict;
 use warnings FATAL => 'all';
 no warnings 'recursion'; # Doing bad stuff on purpose
 
 use Test::More 0.89;
-use Devel::cst;
 
 use Config;
 use POSIX qw/:sys_wait_h raise SIGSEGV/;
