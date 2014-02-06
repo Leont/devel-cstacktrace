@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.006     2014-02-06 02:19:52CET+0100 Europe/Amsterdam
           Preload debugging libraries
           Load cst earlier in test files
 
