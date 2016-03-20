@@ -2,6 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
           Drop dependency on Sub::Exporter::Progressive
+          Add libexecinfo on bsdish operating systems
 
 0.006     2014-02-06 02:19:52CET+0100 Europe/Amsterdam
           Preload debugging libraries
