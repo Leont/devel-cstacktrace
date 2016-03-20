@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.007     2016-03-20 19:01:22+01:00 Europe/Amsterdam
           Drop dependency on Sub::Exporter::Progressive
           Add libexecinfo on bsdish operating systems
           Eliminate Test::Exception dependency
