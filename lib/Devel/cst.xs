@@ -186,8 +186,12 @@ static void S_set_signalstack(pTHX_ int depth) {
 	SV* ret = newSVpvn("", 0);
 	SvGROW(ret, stacksize);
 	sv_magicext(ret, NULL, PERL_MAGIC_ext, &stack_magic, NULL, 0);
-	stack_t altstack = { SvPV_nolen(ret), 0, stacksize };
-	sigaltstack(&altstack, NULL);
+	stack_t altstack;
+	altstack.ss_sp = SvPV_nolen(ret);
+	altstack.ss_size = stacksize;
+	altstack.ss_flags = 0;
+	if (sigaltstack(&altstack, NULL))
+		Perl_croak(aTHX_ "Couldn't call sigaltstack: %s", strerror(errno));
 }
 #define set_signalstack(depth) S_set_signalstack(aTHX_ depth)
 
