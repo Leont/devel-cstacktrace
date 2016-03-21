@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+          - Correctly destruct the alternative stack
 
 0.008     2016-03-21 15:39:11+01:00 Europe/Amsterdam
           - Don't take shortcuts when setting up alternative stack

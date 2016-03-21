@@ -174,8 +174,11 @@ static const int signals_altstack[] = { SIGSEGV, SIGBUS };
 #endif
 
 static int stack_destroy(pTHX_ SV* sv, MAGIC* magic) {
-	stack_t stack = (stack_t){ NULL, SS_DISABLE, 0 };
-	sigaltstack(&stack, NULL);
+	stack_t altstack;
+	altstack.ss_sp = NULL;
+	altstack.ss_size = 0;
+	altstack.ss_flags = SS_DISABLE;
+	sigaltstack(&altstack, NULL);
 	return 0;
 }
 
