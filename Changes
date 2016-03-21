@@ -2,6 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
           - Don't take shortcuts when setting up alternative stack
+          - Allow a different error message on OS X
 
 0.007     2016-03-20 19:01:22+01:00 Europe/Amsterdam
           Drop dependency on Sub::Exporter::Progressive

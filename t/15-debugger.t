@@ -13,9 +13,10 @@ plan(skip_all => 'no fork') if not $Config{d_fork};
 
 sub check_segv(&@);
 
+my $raised = $^O eq 'darwin' ? qr/Signal with unknown cause or source/ : qr/Signal sent by kill\(\)(?: \[.*?\])?/;
 my $address_not_mapped = qr/Address not mapped to object \[.*?\]/s;
 
-check_segv { raise(SIGSEGV) } qr/Signal sent by kill\(\)(?: \[.*?\])?/, 'Got stacktrace on raise';
+check_segv { raise(SIGSEGV) } $raised, 'Got stacktrace on raise';
 eval 'check_segv { package Regexp; use overload q{""} => sub { qr/$_[0]/ }; "".qr// } $address_not_mapped, "Got stacktrace on overload recursion"' if $] < 5.017;
 sub z { [ sort { z() } 1, 2 ] }
 check_segv { z() } $address_not_mapped, 'sort recursion segfaults';
