@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use Module::Build;
 
-my @extra_linker_flags = $^O =~ m/bsd/i ? qw/-lexecinfo/ : ();
+my @extra_linker_flags = $^O =~ m/ ^ (?! gnuk) .* bsd $ /xmsi ? qw/-lexecinfo/ : ();
 
 my $builder = Module::Build->new(
   module_name         => 'Devel::cst',
