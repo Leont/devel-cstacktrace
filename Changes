@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+          - No longer use alternative signal stack for bus faults
 
 0.009     2016-03-24 19:07:08+01:00 Europe/Amsterdam
           - Correctly destruct the alternative stack
