@@ -187,7 +187,7 @@ static int stack_destroy(pTHX_ SV* sv, MAGIC* magic) {
 
 static const MGVTBL stack_magic = { NULL, NULL, NULL, NULL, stack_destroy };
 
-static void S_set_signalstack(pTHX_ int depth) {
+static void S_set_signalstack(pTHX) {
 	size_t stacksize = 2 * SIGSTKSZ;
 	SV* ret = newSVpvn("", 0);
 	SvGROW(ret, stacksize);
@@ -199,7 +199,7 @@ static void S_set_signalstack(pTHX_ int depth) {
 	if (sigaltstack(&altstack, NULL))
 		Perl_croak(aTHX_ "Couldn't call sigaltstack: %s", strerror(errno));
 }
-#define set_signalstack(depth) S_set_signalstack(aTHX_ depth)
+#define set_signalstack() S_set_signalstack(aTHX)
 
 static void set_handlers() {
 	struct sigaction action;
@@ -229,7 +229,7 @@ import(package, depth = 20)
 	size_t depth;
 	CODE:
 	if (!inited++) {
-		set_signalstack(depth);
+		set_signalstack();
 		stack_depth = depth;
 		set_handlers();
 	}
