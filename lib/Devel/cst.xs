@@ -158,11 +158,13 @@ static void my_psiginfo(siginfo_t* info) {
 static int stack_depth;
 
 static void handler(int signo, siginfo_t* info, void* context) {
+	my_psiginfo(info);
+
 	void** buffer = alloca(sizeof(void*) * stack_depth);
 	size_t len = backtrace(buffer, stack_depth);
-	my_psiginfo(info);
 	/* Skip signal handler itself */
 	backtrace_symbols_fd(buffer + 2, len - 2, 2);
+
 	raise(signo);
 }
 
