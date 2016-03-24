@@ -185,7 +185,7 @@ static int stack_destroy(pTHX_ SV* sv, MAGIC* magic) {
 static const MGVTBL stack_magic = { NULL, NULL, NULL, NULL, stack_destroy };
 
 static void S_set_signalstack(pTHX_ int depth) {
-	size_t stacksize = MAX(sizeof(void*) * depth + 2 * MINSIGSTKSZ, SIGSTKSZ);
+	size_t stacksize = 2 * SIGSTKSZ;
 	SV* ret = newSVpvn("", 0);
 	SvGROW(ret, stacksize);
 	sv_magicext(ret, NULL, PERL_MAGIC_ext, &stack_magic, NULL, 0);
