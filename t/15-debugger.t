@@ -17,7 +17,7 @@ my $raised = $^O eq 'darwin' ? qr/Signal with unknown cause or source/ : qr/Sign
 my $address_not_mapped = qr/Address not mapped to object \[.*?\]/s;
 
 check_segv { raise(SIGSEGV) } $raised, 'Got stacktrace on raise';
-eval 'check_segv { package Regexp; use overload q{""} => sub { qr/$_[0]/ }; "".qr// } $address_not_mapped, "Got stacktrace on overload recursion"' if $] < 5.017;
+check_segv { eval 'package Regexp; use overload q{""} => sub { qr/$_[0]/ }; "".qr//' } $address_not_mapped, "Got stacktrace on overload recursion" if $] < 5.017;
 sub z { [ sort { z() } 1, 2 ] }
 check_segv { z() } $address_not_mapped, 'sort recursion segfaults';
 #check_segv { local @INC = sub { require $_[0] }; require ExtUtils::Embed } $address_not_mapped, 'Require stack overflows';
