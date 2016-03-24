@@ -151,7 +151,8 @@ static void my_psiginfo(siginfo_t* info) {
 			}
 	}
 	add_string(")\n");
-	writev(2, buffers, counter);
+	if (!writev(2, buffers, counter))
+		raise(info->si_signo);
 }
 #endif
 
