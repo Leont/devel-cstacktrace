@@ -248,3 +248,4 @@ stacktrace(depth)
 	values = backtrace_symbols(buffer, len);
 	for (i = 0; i < len; i++)
 		mXPUSHp(values[i], strlen(values[i]));
+	free(values);
