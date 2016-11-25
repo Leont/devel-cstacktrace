@@ -204,7 +204,7 @@ static void set_handlers() {
 	struct sigaction action;
 	int i;
 	action.sa_sigaction = handler;
-	action.sa_flags     = SA_RESETHAND | SA_SIGINFO;
+	action.sa_flags     = SA_RESETHAND | SA_NODEFER | SA_SIGINFO;
 	sigemptyset(&action.sa_mask);
 	for (i = 0; i < sizeof signals_normal / sizeof *signals_normal; i++)
 		sigaction(signals_normal[i], &action, NULL);
