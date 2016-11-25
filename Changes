@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.010     2016-11-25 13:20:55+01:00 Europe/Amsterdam
           - No longer use alternative signal stack for bus faults
           - Free buffer in stacktrace function
           - Explicitly add SA_NODEFER to signal flags
