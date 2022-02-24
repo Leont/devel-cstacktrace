@@ -67,10 +67,7 @@ BOOT:
 	void** buffer = alloca(sizeof(void*) * 20);
 	size_t len = backtrace(buffer, 20);
 
-void
-import(package, depth = 20)
-	SV* package;
-	size_t depth;
+void import(SV* package, size_t depth = 20)
 	CODE:
 	if (!inited++) {
 		set_signalstack();
@@ -80,18 +77,13 @@ import(package, depth = 20)
 
 MODULE = Devel::cst        				PACKAGE = Devel::CStacktrace
 
-void
-stacktrace(depth)
-	size_t depth;
-	PREINIT:
-	void** buffer;
-	size_t len;
-	char** values;
-	int i;
+void stacktrace(size_t depth)
 	PPCODE:
+	void** buffer;
 	Newx(buffer, depth, void*);
-	len = backtrace(buffer, depth);
-	values = backtrace_symbols(buffer, len);
+	size_t len = backtrace(buffer, depth);
+	char** values = backtrace_symbols(buffer, len);
+	int i;
 	for (i = 0; i < len; i++)
 		mXPUSHp(values[i], strlen(values[i]));
 	free(values);
