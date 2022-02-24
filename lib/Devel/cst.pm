@@ -1,10 +1,10 @@
 package Devel::cst;
 
+BEGIN { $^P = 0 if $^P == 0x73f and not defined &DB::DB and caller eq ($] >= '5.036' ? 'Devel::cst' : 'main') and keys %INC == 1 }
 use strict;
 use warnings;
 use XSLoader;
 
-$^P = 0 if $^P == 0x73f && not defined &DB::DB && caller eq 'main' && keys %INC == 1;
 XSLoader::load(__PACKAGE__, __PACKAGE__->VERSION);
 
 1;
