@@ -19,30 +19,27 @@ static void handler(int signo, siginfo_t* info, void* context) {
 	raise(signo);
 }
 
-static int stack_destroy(pTHX_ SV* sv, MAGIC* magic) {
+static void* volatile altstack_ptr = NULL;
+
+static void stack_destroy() {
 	stack_t altstack;
 	altstack.ss_sp = NULL;
 	altstack.ss_size = 0;
 	altstack.ss_flags = SS_DISABLE;
 	sigaltstack(&altstack, NULL);
-	return 0;
+	free(altstack_ptr);
 }
 
-static const MGVTBL stack_magic = { NULL, NULL, NULL, NULL, stack_destroy };
-
-static void S_set_signalstack(pTHX) {
+static void set_signalstack() {
 	size_t stacksize = 2 * SIGSTKSZ;
-	SV* ret = newSVpvn("", 0);
-	SvGROW(ret, stacksize);
-	sv_magicext(ret, NULL, PERL_MAGIC_ext, &stack_magic, NULL, 0);
+	altstack_ptr = calloc(stacksize, 1);
 	stack_t altstack;
-	altstack.ss_sp = SvPV_nolen(ret);
+	altstack.ss_sp = altstack_ptr;
 	altstack.ss_size = stacksize;
 	altstack.ss_flags = 0;
-	if (sigaltstack(&altstack, NULL))
-		Perl_croak(aTHX_ "Couldn't call sigaltstack: %s", strerror(errno));
+	sigaltstack(&altstack, NULL);
+	atexit(stack_destroy);
 }
-#define set_signalstack() S_set_signalstack(aTHX)
 
 static const int signals_normal[] = { SIGILL, SIGFPE, SIGTRAP, SIGABRT, SIGQUIT, SIGBUS };
 
@@ -58,8 +55,6 @@ static void set_handlers() {
 	sigaction(SIGSEGV, &action, NULL);
 }
 
-static volatile int inited = 0;
-
 MODULE = Devel::cst        				PACKAGE = Devel::cst
 
 BOOT:
@@ -69,7 +64,7 @@ BOOT:
 
 void import(SV* package, size_t depth = 20)
 	CODE:
-	if (!inited++) {
+	if (!altstack_ptr) {
 		set_signalstack();
 		stack_depth = depth;
 		set_handlers();
