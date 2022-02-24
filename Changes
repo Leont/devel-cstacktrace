@@ -2,6 +2,7 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
           - Correct check for being loaded first
+          - Always use psiginfo
 
 0.010     2016-11-25 13:20:55+01:00 Europe/Amsterdam
           - No longer use alternative signal stack for bus faults
